@@ -88,9 +88,19 @@ export const ScrollSceneProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (targetIndex === activeSectionRef.current && cardStateRef.current === 'CARD_ACTIVE') return;
 
     // Sync URL hash for browser history & bookmarking without reloading
-    const targetHash = targetIndex === -1 ? '#universe' : `#${SECTIONS[targetIndex]?.id || 'hero'}`;
-    if (window.location.hash !== targetHash) {
-      window.history.pushState({ sectionIndex: targetIndex }, '', targetHash);
+    if (targetIndex === -1) {
+      if (window.location.hash) {
+        window.history.pushState(
+          { sectionIndex: -1 },
+          '',
+          window.location.pathname + window.location.search
+        );
+      }
+    } else {
+      const targetHash = `#${SECTIONS[targetIndex]?.id || 'hero'}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState({ sectionIndex: targetIndex }, '', targetHash);
+      }
     }
 
     if (reducedMotion) {
