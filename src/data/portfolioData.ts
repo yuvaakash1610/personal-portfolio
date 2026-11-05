@@ -2,7 +2,7 @@ export interface Project {
   id: string;
   title: string;
   subtitle: string;
-  category: 'Full Stack / ERP' | 'AI / Computer Vision';
+  category: 'Full Stack / ERP' | 'AI / Computer Vision' | 'Mobile & AI Security' | string;
   description: string;
   longDescription: string;
   highlights: string[];
@@ -101,6 +101,24 @@ export const PORTFOLIO_DATA = {
       githubUrl: "https://github.com/vishalvignesh12/OIL_SPILL_PROJECT_SIH_2026-PRODUCT-NAME-SHOULD-BE-SELECTED-",
       featured: true,
       color: "#06B6D4"
+    },
+    {
+      id: "linksentry",
+      title: "LinkSentry",
+      subtitle: "Privacy-First Scam SMS & Phishing URL Detection",
+      category: "Mobile & AI Security",
+      description: "Privacy-aware Android cybersecurity application and dual ML classification system that detects scam SMS and phishing URLs, explaining why they look risky before you tap.",
+      longDescription: "A privacy-aware Android application and intelligent backend that analyzes suspicious messages and links to protect users against scams, fake KYC, OTP theft, and phishing. Combines dual scikit-learn ML models with an explainable rules engine to provide transparent, plain-language risk assessments and safe verification guidance.",
+      highlights: [
+        "Dual ML Pipeline: TF-IDF + Logistic Regression for SMS, Lexical Random Forest for URLs",
+        "Explainable Rules Engine: Transparent additive scoring with multi-signal calibrated risk fusion",
+        "Mobile Android Client: Flutter-based UI with QR code scanning & local deletable scan history",
+        "Privacy-Preserving Design: Offline-first analysis without raw message storage or link navigation"
+      ],
+      techStack: ["Flutter", "FastAPI", "Python", "scikit-learn", "Logistic Regression", "Random Forest", "Pydantic", "Android / Kotlin"],
+      githubUrl: "https://github.com/yuvaakash1610/LinkSentry",
+      featured: true,
+      color: "#009688"
     }
   ] as Project[],
 

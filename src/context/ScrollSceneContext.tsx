@@ -87,6 +87,12 @@ export const ScrollSceneProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const triggerCardTransition = (targetIndex: number) => {
     if (targetIndex === activeSectionRef.current && cardStateRef.current === 'CARD_ACTIVE') return;
 
+    // Sync URL hash for browser history & bookmarking without reloading
+    const targetHash = targetIndex === -1 ? '#universe' : `#${SECTIONS[targetIndex]?.id || 'hero'}`;
+    if (window.location.hash !== targetHash) {
+      window.history.pushState({ sectionIndex: targetIndex }, '', targetHash);
+    }
+
     if (reducedMotion) {
       setActiveSection(targetIndex);
       setLeavingSection(-1);
@@ -139,97 +145,90 @@ export const ScrollSceneProvider: React.FC<{ children: React.ReactNode }> = ({ c
     triggerCardTransitionRef.current = triggerCardTransition;
   });
 
-  // Wheel & Touch gesture listener for smooth scrolling
+  // Keyboard navigation & browser Back/Forward (popstate) listener
   useEffect(() => {
-    let isTransitionLocked = false;
-    let touchStartY = 0;
-
-    // Check if target is inside a scrollable container that hasn't reached its boundary
-    const isScrollingInsideCard = (target: EventTarget | null, direction: number): boolean => {
-      let el = target as HTMLElement | null;
-      while (el && el !== document.body) {
-        const style = window.getComputedStyle(el);
-        const overflow = style.overflow + style.overflowY;
-        const isScrollable = overflow.includes('auto') || overflow.includes('scroll');
-        if (isScrollable && el.scrollHeight > el.clientHeight) {
-          // scrolling down but not at bottom, OR scrolling up but not at top
-          if (direction > 0 && el.scrollTop < el.scrollHeight - el.clientHeight - 2) return true;
-          if (direction < 0 && el.scrollTop > 2) return true;
-        }
-        el = el.parentElement;
+    // 1. Initial Hash check on page mount
+    const initialHash = window.location.hash.replace('#', '').toLowerCase();
+    if (initialHash && initialHash !== 'universe' && initialHash !== 'swarm') {
+      const match = SECTIONS.find((s) => s.id === initialHash);
+      if (match) {
+        triggerCardTransitionRef.current(match.index);
       }
-      return false;
+    }
+
+    // 2. Browser Back / Forward navigation handling
+    const handlePopState = () => {
+      const hash = window.location.hash.replace('#', '').toLowerCase();
+      if (!hash || hash === 'universe' || hash === 'swarm') {
+        triggerCardTransitionRef.current(-1);
+      } else {
+        const match = SECTIONS.find((s) => s.id === hash);
+        if (match) {
+          triggerCardTransitionRef.current(match.index);
+        }
+      }
     };
 
-    const handleWheel = (e: WheelEvent) => {
-      if (Math.abs(e.deltaY) < 18 || isTransitionLocked) return;
-      if (isScrollingInsideCard(e.target, e.deltaY)) return;
+    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('hashchange', handlePopState);
 
-      isTransitionLocked = true;
+    // 3. Accessible Keyboard Navigation controls
+    let isKeyLocked = false;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // Do not intercept keystrokes when typing inside inputs, textareas or contenteditables
+      const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
+      if (
+        tag === 'input' ||
+        tag === 'textarea' ||
+        tag === 'select' ||
+        (e.target as HTMLElement)?.isContentEditable
+      ) {
+        return;
+      }
+
+      if (isKeyLocked) return;
+
       const current = activeSectionRef.current;
 
-      if (e.deltaY > 0) {
-        // Scroll DOWN -> Next Section Card or loop back to Swarm (-1) after Contact (7)
-        if (current < 7) {
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        isKeyLocked = true;
+        if (current < SECTIONS.length - 1) {
           triggerCardTransitionRef.current(current + 1);
-        } else if (current === 7) {
+        } else if (current === SECTIONS.length - 1) {
           triggerCardTransitionRef.current(-1);
         }
-      } else if (e.deltaY < 0) {
-        // Scroll UP -> Previous Section Card
-        const prev = current - 1;
-        if (prev >= -1) {
-          triggerCardTransitionRef.current(prev);
-        }
-      }
-
-      setTimeout(() => {
-        isTransitionLocked = false;
-      }, 750); // Cooldown matching complete 4-stage animation
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY = e.touches[0].clientY;
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      if (isTransitionLocked) return;
-      const touchEndY = e.changedTouches[0].clientY;
-      const diffY = touchStartY - touchEndY;
-
-      if (Math.abs(diffY) > 35) {
-        isTransitionLocked = true;
-        const current = activeSectionRef.current;
-
-        if (diffY > 0) {
-          // Swipe UP / Scroll DOWN -> Next Section Card or loop to Swarm (-1)
-          if (current < 7) {
-            triggerCardTransitionRef.current(current + 1);
-          } else if (current === 7) {
-            triggerCardTransitionRef.current(-1);
-          }
-        } else {
-          // Swipe DOWN / Scroll UP -> Previous Section Card
-          const prev = current - 1;
-          if (prev >= -1) {
-            triggerCardTransitionRef.current(prev);
-          }
-        }
-
         setTimeout(() => {
-          isTransitionLocked = false;
+          isKeyLocked = false;
         }, 750);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        isKeyLocked = true;
+        if (current > 0) {
+          triggerCardTransitionRef.current(current - 1);
+        } else if (current === 0) {
+          triggerCardTransitionRef.current(-1);
+        } else if (current === -1) {
+          triggerCardTransitionRef.current(SECTIONS.length - 1);
+        }
+        setTimeout(() => {
+          isKeyLocked = false;
+        }, 750);
+      } else if (e.key === 'Home') {
+        e.preventDefault();
+        triggerCardTransitionRef.current(0);
+      } else if (e.key === 'End') {
+        e.preventDefault();
+        triggerCardTransitionRef.current(SECTIONS.length - 1);
       }
     };
 
-    window.addEventListener('wheel', handleWheel, { passive: true });
-    window.addEventListener('touchstart', handleTouchStart, { passive: true });
-    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
-      window.removeEventListener('wheel', handleWheel);
-      window.removeEventListener('touchstart', handleTouchStart);
-      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('hashchange', handlePopState);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 

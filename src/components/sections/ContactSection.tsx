@@ -3,11 +3,9 @@ import { PORTFOLIO_DATA } from '../../data/portfolioData';
 import { SectionWrapper } from '../ui/SectionWrapper';
 import { Mail, Send, Sparkles, CheckCircle2, Copy, Check } from 'lucide-react';
 import { IconGithub, IconLinkedin } from '../ui/SocialIcons';
-import { useScrollScene } from '../../context/ScrollSceneContext';
 
 export const ContactSection: React.FC = () => {
   const { contact } = PORTFOLIO_DATA.personalInfo;
-  const { triggerCardTransition } = useScrollScene();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -161,17 +159,6 @@ export const ContactSection: React.FC = () => {
             </button>
           </form>
         )}
-
-        {/* Navigation Link Back to Swarm Universe */}
-        <div className="pt-6 border-t border-cyan-900/30 flex items-center justify-between text-xs">
-          <span className="text-slate-400 font-mono">End of portfolio sections</span>
-          <button
-            onClick={() => triggerCardTransition(-1)}
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 font-mono hover:bg-cyan-900/60 hover:border-cyan-400 transition-all cursor-pointer"
-          >
-            <span>🌌 Return to Portfolio Universe</span>
-          </button>
-        </div>
       </div>
     </SectionWrapper>
   );

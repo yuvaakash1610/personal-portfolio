@@ -1,8 +1,9 @@
 import React from 'react';
 import { useScrollScene } from '../../context/ScrollSceneContext';
+import { ArrowRight, FolderGit2 } from 'lucide-react';
 
 export const UniverseIntroPrompt: React.FC = () => {
-  const { activeSection } = useScrollScene();
+  const { activeSection, triggerCardTransition } = useScrollScene();
 
   if (activeSection !== -1) return null;
 
@@ -59,6 +60,29 @@ export const UniverseIntroPrompt: React.FC = () => {
         >
           Yuvaakash's origin-centered algorithmic particle universe
         </p>
+
+        {/* Interactive Navigation Action Buttons */}
+        <div className="pt-3 flex flex-wrap items-center justify-center gap-4 pointer-events-auto">
+          <button
+            type="button"
+            onClick={() => triggerCardTransition(0)}
+            className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-cyan-600 via-cyan-500 to-blue-600 text-white font-bold text-xs font-mono tracking-widest uppercase shadow-[0_0_25px_rgba(6,182,212,0.4)] hover:shadow-[0_0_35px_rgba(6,182,212,0.6)] hover:scale-105 active:scale-95 transition-all duration-300 flex items-center gap-2.5 cursor-pointer border border-cyan-300/40 focus-visible:outline-2 focus-visible:outline-cyan-400"
+            aria-label="Enter Portfolio - Navigate to Home"
+          >
+            <span>Enter Portfolio</span>
+            <ArrowRight className="w-4 h-4" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => triggerCardTransition(3)}
+            className="px-6 py-3.5 rounded-2xl bg-slate-950/80 hover:bg-slate-900 border border-slate-700 hover:border-cyan-400 text-slate-200 hover:text-white font-semibold text-xs font-mono tracking-wider uppercase backdrop-blur-xl transition-all duration-300 flex items-center gap-2 cursor-pointer shadow-lg active:scale-95 focus-visible:outline-2 focus-visible:outline-cyan-400"
+            aria-label="Jump directly to Projects"
+          >
+            <FolderGit2 className="w-4 h-4 text-cyan-400" />
+            <span>View Projects</span>
+          </button>
+        </div>
       </div>
     </div>
   );
